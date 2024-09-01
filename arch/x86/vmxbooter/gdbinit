@@ -1,0 +1,8 @@
+set confirm off
+set print pretty on
+#set arch i386:x86-64
+set disassemble-next-line on
+set disassembler-options
+set listsize 20
+file ../../../vmlinux
+target remote:1234
