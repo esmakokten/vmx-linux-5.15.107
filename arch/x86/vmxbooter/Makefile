@@ -76,18 +76,27 @@ num_sockets=1
 num_cores=1
 num_threads=1
 vcpus=$(shell echo $$(($(num_sockets)*$(num_cores)*$(num_threads))))
+memory=1024
 
 gdb:
 	gdb -x ./gdbinit
-run: all
+busybox_initramfs:
+	cd initrd && find . | cpio -o -H newc | gzip > ../initramfs.cpio.gz
+run_no_kvm: 
 	./build_iso.sh kernel.img
-	qemu-system-x86_64 -cpu max -smp $(vcpus),cores=$(num_cores),threads=$(num_threads),sockets=$(num_sockets) -m  128 -cdrom kernel.iso -no-reboot -s -nographic -netdev type=tap,id=net0,ifname=tap0,script=no,downscript=no -device virtio-net-pci,netdev=net0,mac=10:10:10:10:10:11
+	sudo qemu-system-x86_64 -cpu max -smp $(vcpus),cores=$(num_cores),threads=$(num_threads),sockets=$(num_sockets) -m  $(memory) -cdrom kernel.iso -no-reboot -s -nographic
+run_wo_net:	
+	/build_iso.sh kernel.img
+	qemu-system-x86_64 -enable-kvm -cpu max -smp $(vcpus),cores=$(num_cores),threads=$(num_threads),sockets=$(num_sockets) -m  $(memory) -cdrom kernel.iso -no-reboot -s -nographic
+run_w_net:
+	./build_iso.sh kernel.img
+	sudo qemu-system-x86_64 -enable-kvm -cpu max -smp $(vcpus),cores=$(num_cores),threads=$(num_threads),sockets=$(num_sockets) -m $(memory) -cdrom kernel.iso -no-reboot -s -nographic -netdev type=tap,id=net0,ifname=tap0,script=no,downscript=no -device virtio-net-pci,netdev=net0,mac=10:10:10:10:10:11
 debug: all
 	./build_iso.sh kernel.img
-	qemu-system-x86_64 -cpu max -smp $(vcpus),cores=$(num_cores),threads=$(num_threads),sockets=$(num_sockets) -m 128 -cdrom kernel.iso -no-reboot -s -S -nographic 
+	qemu-system-x86_64 -enable-kvm -cpu max -smp $(vcpus),cores=$(num_cores),threads=$(num_threads),sockets=$(num_sockets) -m $(memory) -cdrom kernel.iso -no-reboot -s -S -nographic
 bzimage: all
 	./build_iso.sh kernel.img
-	qemu-system-x86_64 -cpu max -smp $(vcpus),cores=$(num_cores),threads=$(num_threads),sockets=$(num_sockets) -m 128 -no-reboot -s  -nographic -append "console=ttyS0,115200 nokaslr" -kernel ../boot/bzImage
+	qemu-system-x86_64 -enable-kvm -cpu max -smp $(vcpus),cores=$(num_cores),threads=$(num_threads),sockets=$(num_sockets) -m $(memory) -no-reboot -s -nographic -append "console=ttyS0,115200 nokaslr" -kernel ../boot/bzImage
 objdump:
 	objdump -S ../../../vmlinux | less
 
