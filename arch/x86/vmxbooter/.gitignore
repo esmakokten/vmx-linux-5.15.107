@@ -1,2 +1,4 @@
 kernel.img
 kernel.iso
+vmlinux.img
+output.txt
