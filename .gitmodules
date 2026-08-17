@@ -1,3 +1,4 @@
 [submodule "arch/x86/vmxbooter/helpers"]
 	path = arch/x86/vmxbooter/helpers
 	url = https://github.com/esmakokten/helpers.git
+	branch = vmx-linux-5.15.107
